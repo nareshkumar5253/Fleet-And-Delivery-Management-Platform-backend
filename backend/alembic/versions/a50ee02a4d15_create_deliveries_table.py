@@ -1,7 +1,7 @@
 """create deliveries table
 
 Revision ID: a50ee02a4d15
-Revises: 7aadccb1d24d
+Revises: 2a7a32dfad69
 
 """
 
@@ -12,8 +12,13 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
+# revision identifiers, used by Alembic.
 revision: str = "a50ee02a4d15"
-down_revision: Union[str, Sequence[str], None] = "7aadccb1d24d"
+
+# IMPORTANT:
+# deliveries depends on drivers table
+down_revision: Union[str, Sequence[str], None] = "2a7a32dfad69"
+
 branch_labels = None
 depends_on = None
 
@@ -28,11 +33,11 @@ delivery_status_enum = postgresql.ENUM(
 )
 
 
-def upgrade():
+def upgrade() -> None:
 
     bind = op.get_bind()
 
-    # create enum only if missing
+    # Create enum type
     delivery_status_enum.create(
         bind,
         checkfirst=True
@@ -45,13 +50,15 @@ def upgrade():
         sa.Column(
             "id",
             sa.Integer(),
+            primary_key=True,
             nullable=False
         ),
 
         sa.Column(
             "tracking_number",
             sa.String(length=50),
-            nullable=False
+            nullable=False,
+            unique=True
         ),
 
         sa.Column(
@@ -83,7 +90,8 @@ def upgrade():
                 name="deliverystatus",
                 create_type=False
             ),
-            nullable=False
+            nullable=False,
+            server_default="PENDING"
         ),
 
         sa.Column(
@@ -98,17 +106,10 @@ def upgrade():
             nullable=False
         ),
 
+
         sa.ForeignKeyConstraint(
             ["driver_id"],
             ["drivers.id"]
-        ),
-
-        sa.PrimaryKeyConstraint(
-            "id"
-        ),
-
-        sa.UniqueConstraint(
-            "tracking_number"
         )
     )
 
@@ -122,7 +123,7 @@ def upgrade():
 
 
 
-def downgrade():
+def downgrade() -> None:
 
     op.drop_index(
         "ix_deliveries_id",
@@ -132,6 +133,7 @@ def downgrade():
     op.drop_table(
         "deliveries"
     )
+
 
     delivery_status_enum.drop(
         op.get_bind(),

@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: fleet_backend
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - ./backend/.env
+
+    depends_on:
+      - postgres
+      - redis
+
+    command:
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+
+  postgres:
+
+    image: postgres:16
+
+    container_name: fleet_postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fleet_management
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+
+  redis:
+
+    image: redis:7
+
+    container_name: fleet_redis
+
+    restart: always
+
+    ports:
+      - "6379:6379"
+
+
+
+  celery:
+
+    build:
+      context: ./backend
+
+    container_name: fleet_celery
+
+    command:
+      celery -A app.worker.celery_app.celery worker --loglevel=info
+
+    env_file:
+      - ./backend/.env
+
+    depends_on:
+      - redis
+      - backend
+
+
+
+volumes:
+
+  postgres_data:
