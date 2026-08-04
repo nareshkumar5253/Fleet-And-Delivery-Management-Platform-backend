@@ -243,9 +243,9 @@ Create a `.env` file inside the backend folder.
 Example
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/fleet_db
+DATABASE_URL=postgresql://postgres:Naresh5253@localhost:5432/fleet_db
 
-SECRET_KEY=your_secret_key
+SECRET_KEY=ThisIsMyVerySecretKey123456
 
 ALGORITHM=HS256
 
